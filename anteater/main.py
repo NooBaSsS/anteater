@@ -1,15 +1,17 @@
 COLS = 5
-ROWS = 10
-
+ROWS = 5
 
 class Field:
     def __init__(self) -> None:
         self.rows = ROWS
         self.cols = COLS
-        self.cells = []
+        self.cells = [[Cell(y, x) for x in range(self.cols)] for y in range(self.rows)]
 
-    def draw() -> None:
-        print()
+    def draw(self) -> None:
+        for row in self.cells:
+            for cell in row:
+                print(cell, end=' ')
+            print()
 
 
 class Cell:
@@ -21,4 +23,6 @@ class Cell:
     def __str__(self) -> str:
         return self.image
 
+
 field = Field()
+field.draw()
