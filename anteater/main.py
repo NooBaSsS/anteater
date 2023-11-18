@@ -1,7 +1,7 @@
 import keyboard
 import os
 
-COLS = 5
+COLS = 10
 ROWS = 5
 EMPTY = '.'
 PLAYER = 'P'
@@ -68,24 +68,21 @@ class Game:
 
     def run(self):
         while self.game:
-            key = keyboard.read_event()
+            key = keyboard.read_event()  # перемещение + проверка
             if key.event_type == keyboard.KEY_DOWN:
-                if key.name == 'right':
+                if key.name == 'right' and self.field.player.x < COLS - 1:
                     self.field.player.x += 1
-                if key.name == 'left':
+                if key.name == 'left' and self.field.player.x:
                     self.field.player.x -= 1
+                if key.name == 'up' and self.field.player.y:
+                    self.field.player.y -= 1
+                if key.name == 'down' and self.field.player.y < ROWS - 1:
+                    self.field.player.y += 1
             print('')
-            os.system('cls')
+            os.system('cls')  # отрисовка + очистка
             self.field.draw()
 
 
 field = Field()
 player = Player(field, 2, 2)
 Game(field)
-
-'''
-key = keyboard.read_event()
-    if key.event_type == keyboard.KEY_DOWN:
-        if key.name == 'right':
-            print('r')
-'''
