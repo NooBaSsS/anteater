@@ -1,12 +1,21 @@
+import keyboard
+import os
+
 COLS = 5
 ROWS = 5
+EMPTY = '.'
+PLAYER = 'P'
+ANTHILL = 'A'
+ANT = 'a'
 
 
 class Field:
     def __init__(self) -> None:
         self.rows = ROWS
         self.cols = COLS
-        self.cells = [[Cell(y, x) for x in range(self.cols)] for y in range(self.rows)]
+        self.cells = [
+            [Cell(y, x) for x in range(self.cols)] for y in range(self.rows)
+        ]
         self.player = None
 
     def draw(self) -> None:
@@ -23,7 +32,14 @@ class Cell:
     def __init__(self, y, x) -> None:
         self.y = y
         self.x = x
-        self.image = '.'
+        self.content = None
+        self.image = EMPTY
+
+    def draw(self):
+        if self.content:
+            print(self.content.image)
+        else:
+            print(self.image)
 
     def __str__(self) -> str:
         return self.image
@@ -35,12 +51,41 @@ class Player:
         self.x = x
         self.field = field
         self.field.player = self
-        self.image = 'P'
+        self.image = PLAYER
 
     def __str__(self) -> str:
         return self.image
 
+    def move_player(self):
+        pass
+
+
+class Game:
+    def __init__(self, field) -> None:
+        self.field = field
+        self.game = True
+        self.run()
+
+    def run(self):
+        while self.game:
+            key = keyboard.read_event()
+            if key.event_type == keyboard.KEY_DOWN:
+                if key.name == 'right':
+                    self.field.player.x += 1
+                if key.name == 'left':
+                    self.field.player.x -= 1
+            print('')
+            os.system('cls')
+            self.field.draw()
+
 
 field = Field()
-player = Player(field, 0, 0) # y и x игрока
-field.draw()
+player = Player(field, 2, 2)
+Game(field)
+
+'''
+key = keyboard.read_event()
+    if key.event_type == keyboard.KEY_DOWN:
+        if key.name == 'right':
+            print('r')
+'''
