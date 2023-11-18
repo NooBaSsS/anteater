@@ -1,7 +1,3 @@
-'''
-перемещение на стрелки
-есть защита от выхода за пределы поля 
-'''
 import keyboard
 import os
 
@@ -60,9 +56,6 @@ class Player:
     def __str__(self) -> str:
         return self.image
 
-    def move_player(self):
-        pass
-
 
 class Game:
     def __init__(self, field) -> None:
@@ -71,6 +64,7 @@ class Game:
         self.run()
 
     def run(self):
+        self.field.draw()
         while self.game:
             key = keyboard.read_event()  # перемещение + проверка
             if key.event_type == keyboard.KEY_DOWN:
