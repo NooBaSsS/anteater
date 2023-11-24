@@ -1,5 +1,6 @@
 import keyboard
 import os
+import random
 
 COLS = 10
 ROWS = 5
@@ -17,15 +18,30 @@ class Field:
             [Cell(y, x) for x in range(self.cols)] for y in range(self.rows)
         ]
         self.player = None
+        self.anthills = []
 
     def draw(self) -> None:
         for row in self.cells:
             for cell in row:
                 if self.player is not None and cell.y == self.player.y and cell.x == self.player.x:
-                    print(player, end=' ')  # Player(image='P') - игрок
+                    print(PLAYER, end=' ')
+                elif any(cell.y == anthill.y and cell.x == anthill.x for anthill in self.anthills):
+                    print(ANTHILL, end=' ')
                 else:
                     print(cell, end=' ')
             print()
+
+    def spawn_anthills(self, num_anthills: int) -> None:
+        empty_cells = [
+            cell for row in self.cells for cell in row
+            if cell is not self.player and not any(cell.y == anthill.y and cell.x == anthill.x for anthill in self.anthills)
+        ]
+        random.shuffle(empty_cells)
+        for i in range(num_anthills):
+            if i < len(empty_cells):
+                anthill = Anthill(empty_cells[i].y, empty_cells[i].x)
+                self.anthills.append(anthill)
+                empty_cells[i].content = anthill
 
 
 class Cell:
@@ -57,6 +73,16 @@ class Player:
         return self.image
 
 
+class Anthill:
+    def __init__(self, y, x) -> None:
+        self.y = y
+        self.x = x
+        self.image = ANTHILL
+
+    def __str__(self):
+        return self.image
+
+
 class Game:
     def __init__(self, field) -> None:
         self.field = field
@@ -64,9 +90,10 @@ class Game:
         self.run()
 
     def run(self):
+        self.field.spawn_anthills(random.randint(1, 4))
         self.field.draw()
         while self.game:
-            key = keyboard.read_event()  # перемещение + проверка
+            key = keyboard.read_event()  # Move and check
             if key.event_type == keyboard.KEY_DOWN:
                 if key.name == 'right' and self.field.player.x < COLS - 1:
                     self.field.player.x += 1
@@ -77,7 +104,7 @@ class Game:
                 if key.name == 'down' and self.field.player.y < ROWS - 1:
                     self.field.player.y += 1
             print('')
-            os.system('cls')  # отрисовка + очистка
+            os.system('cls')  # Draw and clear
             self.field.draw()
 
 
