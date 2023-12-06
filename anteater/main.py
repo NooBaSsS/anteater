@@ -2,8 +2,8 @@ import keyboard
 import os
 import random
 
-COLS = 10
-ROWS = 10
+COLS = 7
+ROWS = 7
 EMPTY = '.'
 PLAYER = 'P'
 ANTHILL = 'A'
@@ -12,6 +12,7 @@ ANTHILLS_MIN = 1
 ANTHILL_MAX = 4
 PLAYER_Y = 0
 PLAYER_X = 0
+ANTS_MAX = 8
 
 
 class Field:
@@ -23,6 +24,7 @@ class Field:
         ]
         self.player = Player(Field, PLAYER_Y, PLAYER_X)
         self.anthills = []
+        self.ants = []
 
     def draw(self) -> None:
         for row in self.cells:
@@ -55,28 +57,59 @@ class Field:
                 self.anthills.append(anthill)
                 empty_cells[i].content = anthill
 
+    def get_neighbours(self, y, x):
+        neighbours_coords = []
+        for row in (-1, 0, 1):
+            for col in (-1, 0, 1):
+                if row == 0 and col == 0:
+                    continue
+                neighbours_coords.append(
+                    (y + row, x + col)
+                )
+
     def spawn_ants(self) -> None:
         for anthill in self.anthills:
-            adjacent_cells = []
-            for dx in [-1, 0, 1]:
-                for dy in [-1, 0, 1]:
-                    new_x = anthill.x + dx
-                    new_y = anthill.y + dy
+            if not anthill.num_ants:
+                continue
+            neighbours_coords = []
+            neighbours_coords = self.get_neighbours(
+                anthill.y,
+                anthill.x
+            )
+            if not neighbours_coords:
+                return
+            for y, x in neighbours_coords:
+                if y < 0 and y > self.rows - 1:
+                    if x < 0 and x > self.cols - 1:
+                        continue
+                if self.cells[y][x].content:
+                    continue
+                ant = Ant(y, x)
+                self.cells[y][x].content = ant
+                self.ants.append(ant)
+                anthill.num_ants -= 1
+                break
 
-                    if 0 <= new_x < self.cols and 0 <= new_y < self.rows:
-                        cell = self.cells[new_y][new_x]
-                        if cell.content is None:
-                            adjacent_cells.append(cell)
-
-            random.shuffle(adjacent_cells)
-            ants_to_spawn = min(len(adjacent_cells), anthill.num_ants)
-            print(ants_to_spawn)
-            input()
-            for i in range(ants_to_spawn):
-                if adjacent_cells[i].content is None:
-                    ant = Ant(adjacent_cells[i].y, adjacent_cells[i].x)
-                    adjacent_cells[i].content = ant
-
+    def move_ants(self):
+        for ant in self.ants:
+            neighbours_coords = self.get_neighbours(ant.y, ant.x)
+            if not neighbours_coords:
+                continue
+            for y, x in neighbours_coords:
+                if y < 0 and y > self.rows - 1:
+                    if x < 0 and x > self.cols - 1:
+                        pass
+                        self.ants.remove(ant)
+                        self.cells[ant.y][ant.x].content = None
+                        break
+                    else:
+                        new_cell = self.cells[y][x]
+                        if new_cell.content:
+                            continue
+                        self.cells[ant.y][ant.x] = None
+                        new_cell.content = ant
+                        ant.y = y
+                        ant.x = x
 
 class Ant:
     def __init__(self, y, x) -> None:
@@ -122,7 +155,7 @@ class Anthill:
         self.y = y
         self.x = x
         self.image = ANTHILL
-        self.num_ants = 1
+        self.num_ants = ANTS_MAX
 
     def __str__(self):
         return self.image
