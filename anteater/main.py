@@ -9,9 +9,10 @@ PLAYER = 'P'
 ANTHILL = 'A'
 ANT = 'a'
 ANTHILLS_MIN = 1
-ANTHILL_MAX = 4
+ANTHILL_MAX = 1
 PLAYER_Y = 0
 PLAYER_X = 0
+ANTS_MIN = 2
 ANTS_MAX = 8
 
 
@@ -66,21 +67,22 @@ class Field:
                 neighbours_coords.append(
                     (y + row, x + col)
                 )
+        return neighbours_coords
 
     def spawn_ants(self) -> None:
         for anthill in self.anthills:
             if not anthill.num_ants:
                 continue
-            neighbours_coords = []
             neighbours_coords = self.get_neighbours(
                 anthill.y,
                 anthill.x
             )
+
             if not neighbours_coords:
-                return
+                continue
             for y, x in neighbours_coords:
-                if y < 0 and y > self.rows - 1:
-                    if x < 0 and x > self.cols - 1:
+                if y < 0 or y > self.rows - 1:
+                    if x < 0 or x > self.cols - 1:
                         continue
                 if self.cells[y][x].content:
                     continue
@@ -96,20 +98,19 @@ class Field:
             if not neighbours_coords:
                 continue
             for y, x in neighbours_coords:
-                if y < 0 and y > self.rows - 1:
-                    if x < 0 and x > self.cols - 1:
-                        pass
+                if y < 0 or y > self.rows - 1:
+                    if x < 0 or x > self.cols - 1:
                         self.ants.remove(ant)
                         self.cells[ant.y][ant.x].content = None
                         break
-                    else:
-                        new_cell = self.cells[y][x]
-                        if new_cell.content:
-                            continue
-                        self.cells[ant.y][ant.x] = None
-                        new_cell.content = ant
-                        ant.y = y
-                        ant.x = x
+
+                new_cell = self.cells[y][x]
+                if new_cell.content:
+                    continue
+                self.cells[ant.y][ant.x].content = None
+                new_cell.content = ant
+                ant.y = y
+                ant.x = x
 
 class Ant:
     def __init__(self, y, x) -> None:
@@ -155,7 +156,7 @@ class Anthill:
         self.y = y
         self.x = x
         self.image = ANTHILL
-        self.num_ants = ANTS_MAX
+        self.num_ants = random.randint(ANTS_MIN, ANTS_MAX)
 
     def __str__(self):
         return self.image
@@ -183,6 +184,7 @@ class Game:
                     self.field.player.y += 1
             print('')
             self.field.spawn_ants()
+            self.field.move_ants()
             os.system('cls')  # Draw and clear
             self.field.draw()
 
