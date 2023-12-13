@@ -92,25 +92,33 @@ class Field:
                 anthill.num_ants -= 1
                 break
 
+    def is_on_field(self, y: int, x: int) -> bool:
+        return (y > -1 and y < ROWS) and (x > -1 and x < COLS)
+
     def move_ants(self):
         for ant in self.ants:
             neighbours_coords = self.get_neighbours(ant.y, ant.x)
+            random.shuffle(neighbours_coords)
+
+            print(f'У муравья {ant.y} {ant.x} соседи:')
+            print(*neighbours_coords)
             if not neighbours_coords:
                 continue
             for y, x in neighbours_coords:
-                if y < 0 or y > self.rows - 1:
-                    if x < 0 or x > self.cols - 1:
-                        self.ants.remove(ant)
-                        self.cells[ant.y][ant.x].content = None
-                        break
+                if not self.is_on_field(y, x):
+                    self.ants.remove(ant)
+                    self.cells[ant.y][ant.x].content = None
+                    break
 
                 new_cell = self.cells[y][x]
+
                 if new_cell.content:
                     continue
                 self.cells[ant.y][ant.x].content = None
                 new_cell.content = ant
                 ant.y = y
                 ant.x = x
+
 
 class Ant:
     def __init__(self, y, x) -> None:
@@ -163,6 +171,12 @@ class Anthill:
 
 
 class Game:
+    '''
+    закончить игру
+    считать количество съеденных / сбежавших / всего
+    собирать и выводить сообщение от каждого муравья
+    разделить код на файлы
+    '''
     def __init__(self, field) -> None:
         self.field = field
         self.game = True
@@ -175,6 +189,9 @@ class Game:
             key = keyboard.read_event()  # Move and check
             if key.event_type == keyboard.KEY_DOWN:
                 if key.name == 'right' and self.field.player.x < COLS - 1:
+                    """if (self.field.player.y, self.field.player.x += 1).content == 'ant':
+                        (self.field.player.y, self.field.player.x += 1).content = None
+                        self.field.ants.remove(self.field.player.y, self.field.player.x += 1)"""
                     self.field.player.x += 1
                 if key.name == 'left' and self.field.player.x:
                     self.field.player.x -= 1
@@ -182,9 +199,11 @@ class Game:
                     self.field.player.y -= 1
                 if key.name == 'down' and self.field.player.y < ROWS - 1:
                     self.field.player.y += 1
+                if key.name == 'esc':
+                    break
             print('')
-            self.field.spawn_ants()
             self.field.move_ants()
+            self.field.spawn_ants()
             os.system('cls')  # Draw and clear
             self.field.draw()
 
