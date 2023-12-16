@@ -8,11 +8,11 @@ EMPTY = '.'
 PLAYER = 'P'
 ANTHILL = 'A'
 ANT = 'a'
-ANTHILLS_MIN = 1
-ANTHILL_MAX = 1
+ANTHILLS_MIN = 3
+ANTHILL_MAX = 3
 PLAYER_Y = 0
 PLAYER_X = 0
-ANTS_MIN = 2
+ANTS_MIN = 8
 ANTS_MAX = 8
 
 
@@ -39,6 +39,9 @@ class Field:
                 else:
                     print(cell, end=' ')
             print()
+
+    def move_player(self) -> None:
+        pass
 
     def get_empty_cells(self) -> list:
         empty_cells = [
@@ -69,6 +72,14 @@ class Field:
                 )
         return neighbours_coords
 
+    def get_total_ants(self) -> int:
+        ants_in_anthills = 0  # + [i.num_ants for i in self.anthills][0]
+        for anthill in self.anthills:
+            ants_in_anthills += anthill.num_ants
+        total_ants = len(self.ants) + ants_in_anthills
+        print(total_ants)
+        return total_ants
+
     def spawn_ants(self) -> None:
         for anthill in self.anthills:
             if not anthill.num_ants:
@@ -82,8 +93,9 @@ class Field:
                 continue
             for y, x in neighbours_coords:
                 if y < 0 or y > self.rows - 1:
-                    if x < 0 or x > self.cols - 1:
-                        continue
+                    continue
+                if x < 0 or x > self.cols - 1:
+                    continue
                 if self.cells[y][x].content:
                     continue
                 ant = Ant(y, x)
@@ -172,7 +184,6 @@ class Anthill:
 
 class Game:
     '''
-    закончить игру
     считать количество съеденных / сбежавших / всего
     собирать и выводить сообщение от каждого муравья
     разделить код на файлы
@@ -186,23 +197,39 @@ class Game:
         self.field.spawn_anthills(random.randint(ANTHILLS_MIN, ANTHILL_MAX))
         self.field.draw()
         while self.game:
+            self.field.get_total_ants()
             key = keyboard.read_event()  # Move and check
             if key.event_type == keyboard.KEY_DOWN:
                 if key.name == 'right' and self.field.player.x < COLS - 1:
-                    """if (self.field.player.y, self.field.player.x += 1).content == 'ant':
-                        (self.field.player.y, self.field.player.x += 1).content = None
-                        self.field.ants.remove(self.field.player.y, self.field.player.x += 1)"""
+                    if isinstance(self.field.cells[self.field.player.y][self.field.player.x + 1].content, Anthill):
+                        continue
+                    if isinstance(self.field.cells[self.field.player.y][self.field.player.x + 1].content, Ant):
+                        self.field.cells[self.field.player.y][self.field.player.x + 1].content = None
+                        self.field.ants.remove([self.field.player.y][self.field.player.x + 1]) '''File "C:\Users\IT\Desktop\main.py", line 208, in run
+                                                                                                    self.field.ants.remove([self.field.player.y][self.field.player.x + 1])
+                                                                                                                            ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+                                                                                                                                IndexError: list index out of range'''
                     self.field.player.x += 1
                 if key.name == 'left' and self.field.player.x:
+                    if isinstance(self.field.cells[self.field.player.y][self.field.player.x - 1].content, Anthill):
+                        continue
                     self.field.player.x -= 1
                 if key.name == 'up' and self.field.player.y:
+                    if isinstance(self.field.cells[self.field.player.y - 1][self.field.player.x].content, Anthill):
+                        continue
                     self.field.player.y -= 1
                 if key.name == 'down' and self.field.player.y < ROWS - 1:
+                    if isinstance(self.field.cells[self.field.player.y + 1][self.field.player.x].content, Anthill):
+                        continue
                     self.field.player.y += 1
                 if key.name == 'esc':
                     break
             print('')
-            self.field.move_ants()
+            if not self.field.get_total_ants:
+                print('игра окончена!')
+                input('_enter_')
+                break
+            # self.field.move_ants()
             self.field.spawn_ants()
             os.system('cls')  # Draw and clear
             self.field.draw()
