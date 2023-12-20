@@ -8,11 +8,11 @@ EMPTY = '.'
 PLAYER = 'P'
 ANTHILL = 'A'
 ANT = 'a'
-ANTHILLS_MIN = 3
+ANTHILLS_MIN = 1
 ANTHILL_MAX = 3
-PLAYER_Y = 0
-PLAYER_X = 0
-ANTS_MIN = 8
+PLAYER_Y = 3
+PLAYER_X = 3
+ANTS_MIN = 4
 ANTS_MAX = 8
 
 
@@ -77,7 +77,6 @@ class Field:
         for anthill in self.anthills:
             ants_in_anthills += anthill.num_ants
         total_ants = len(self.ants) + ants_in_anthills
-        print(total_ants)
         return total_ants
 
     def spawn_ants(self) -> None:
@@ -112,14 +111,17 @@ class Field:
             neighbours_coords = self.get_neighbours(ant.y, ant.x)
             random.shuffle(neighbours_coords)
 
+            """
             print(f'У муравья {ant.y} {ant.x} соседи:')
             print(*neighbours_coords)
+            """
             if not neighbours_coords:
                 continue
             for y, x in neighbours_coords:
                 if not self.is_on_field(y, x):
                     self.ants.remove(ant)
                     self.cells[ant.y][ant.x].content = None
+                    
                     break
 
                 new_cell = self.cells[y][x]
@@ -183,11 +185,6 @@ class Anthill:
 
 
 class Game:
-    '''
-    считать количество съеденных / сбежавших / всего
-    собирать и выводить сообщение от каждого муравья
-    разделить код на файлы
-    '''
     def __init__(self, field) -> None:
         self.field = field
         self.game = True
@@ -195,6 +192,9 @@ class Game:
 
     def run(self):
         self.field.spawn_anthills(random.randint(ANTHILLS_MIN, ANTHILL_MAX))
+        self.total_ants = self.field.get_total_ants()
+        print(self.total_ants)
+        self.ants_ate = 0
         self.field.draw()
         while self.game:
             self.field.get_total_ants()
@@ -204,35 +204,49 @@ class Game:
                     if isinstance(self.field.cells[self.field.player.y][self.field.player.x + 1].content, Anthill):
                         continue
                     if isinstance(self.field.cells[self.field.player.y][self.field.player.x + 1].content, Ant):
+                        self.field.ants.remove(self.field.cells[self.field.player.y][self.field.player.x + 1].content) 
                         self.field.cells[self.field.player.y][self.field.player.x + 1].content = None
-                        self.field.ants.remove([self.field.player.y][self.field.player.x + 1]) '''File "C:\Users\IT\Desktop\main.py", line 208, in run
-                                                                                                    self.field.ants.remove([self.field.player.y][self.field.player.x + 1])
-                                                                                                                            ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
-                                                                                                                                IndexError: list index out of range'''
+                        self.ants_ate += 1
                     self.field.player.x += 1
                 if key.name == 'left' and self.field.player.x:
                     if isinstance(self.field.cells[self.field.player.y][self.field.player.x - 1].content, Anthill):
                         continue
+                    if isinstance(self.field.cells[self.field.player.y][self.field.player.x - 1].content, Ant):
+                        self.field.ants.remove(self.field.cells[self.field.player.y][self.field.player.x - 1].content) 
+                        self.field.cells[self.field.player.y][self.field.player.x - 1].content = None
+                        self.ants_ate += 1
                     self.field.player.x -= 1
                 if key.name == 'up' and self.field.player.y:
+                    if isinstance(self.field.cells[self.field.player.y - 1][self.field.player.x].content, Ant):
+                        self.field.ants.remove(self.field.cells[self.field.player.y - 1][self.field.player.x].content) 
+                        self.field.cells[self.field.player.y - 1][self.field.player.x].content = None
+                        self.ants_ate += 1
                     if isinstance(self.field.cells[self.field.player.y - 1][self.field.player.x].content, Anthill):
                         continue
                     self.field.player.y -= 1
                 if key.name == 'down' and self.field.player.y < ROWS - 1:
+                    if isinstance(self.field.cells[self.field.player.y + 1][self.field.player.x].content, Ant):
+                        self.field.ants.remove(self.field.cells[self.field.player.y + 1][self.field.player.x].content) 
+                        self.field.cells[self.field.player.y + 1][self.field.player.x].content = None
+                        self.ants_ate += 1
                     if isinstance(self.field.cells[self.field.player.y + 1][self.field.player.x].content, Anthill):
                         continue
                     self.field.player.y += 1
                 if key.name == 'esc':
+                    input('_enter_')
                     break
             print('')
-            if not self.field.get_total_ants:
-                print('игра окончена!')
-                input('_enter_')
-                break
-            # self.field.move_ants()
+            self.field.move_ants()
             self.field.spawn_ants()
             os.system('cls')  # Draw and clear
             self.field.draw()
+            if not self.field.get_total_ants():
+                print('игра окончена!')
+                print(f'муравьев всего: {self.total_ants}')
+                print(f'муравьев съедено: {self.ants_ate}')
+                print(f'муравьев сбежало: {self.total_ants - self.ants_ate}')
+                input('_enter_')
+                break
 
 
 field = Field()
