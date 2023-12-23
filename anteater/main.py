@@ -2,19 +2,19 @@ import keyboard
 import os
 import random
 
-COLS = 7
-ROWS = 7
+COLS = 15
+ROWS = 15
 EMPTY = '.'
 PLAYER = 'P'
 ANTHILL = 'A'
 ANT = 'a'
 ANTHILLS_MIN = 3
 ANTHILL_MAX = 5
-PLAYER_Y = 3
-PLAYER_X = 3
+PLAYER_Y = 0
+PLAYER_X = 0
 ANTS_MIN = 4
 ANTS_MAX = 8
-IS_DEBUG = True
+IS_DEBUG = 0
 
 
 class Field:
@@ -58,8 +58,9 @@ class Field:
             random.shuffle(empty_cells)
             if i < len(empty_cells):
                 anthill = Anthill(empty_cells[i].y, empty_cells[i].x)
-                print(anthill.x, anthill.y)
-                print()
+                if IS_DEBUG:
+                    print(anthill.x, anthill.y)
+                    print()
                 self.anthills.append(anthill)
                 empty_cells[i].content = anthill
 
@@ -75,7 +76,7 @@ class Field:
         return neighbours_coords
 
     def get_total_ants(self) -> int:
-        ants_in_anthills = 0  # + [i.num_ants for i in self.anthills][0]
+        ants_in_anthills = 0
         for anthill in self.anthills:
             ants_in_anthills += anthill.num_ants
         total_ants = len(self.ants) + ants_in_anthills
@@ -199,7 +200,7 @@ class Game:
         self.field.draw()
         while self.game:
             self.field.get_total_ants()
-            key = keyboard.read_event()  # Move and check
+            key = keyboard.read_event()
             if key.event_type == keyboard.KEY_DOWN:
                 if key.name == 'right' and self.field.player.x < COLS - 1:
                     if isinstance(self.field.cells[self.field.player.y][self.field.player.x + 1].content, Anthill):
