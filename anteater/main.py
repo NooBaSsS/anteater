@@ -8,12 +8,13 @@ EMPTY = '.'
 PLAYER = 'P'
 ANTHILL = 'A'
 ANT = 'a'
-ANTHILLS_MIN = 1
-ANTHILL_MAX = 3
+ANTHILLS_MIN = 3
+ANTHILL_MAX = 5
 PLAYER_Y = 3
 PLAYER_X = 3
 ANTS_MIN = 4
 ANTS_MAX = 8
+IS_DEBUG = True
 
 
 class Field:
@@ -24,6 +25,7 @@ class Field:
             [Cell(y, x) for x in range(self.cols)] for y in range(self.rows)
         ]
         self.player = Player(Field, PLAYER_Y, PLAYER_X)
+        self.ants_escaped = 0
         self.anthills = []
         self.ants = []
 
@@ -34,7 +36,7 @@ class Field:
                     print(PLAYER, end=' ')
                 elif any(cell.y == anthill.y and cell.x == anthill.x for anthill in self.anthills):
                     print(ANTHILL, end=' ')
-                elif cell.content is not None:  # Add this condition to display the content of the cell
+                elif cell.content is not None:
                     print(cell.content, end=' ')
                 else:
                     print(cell, end=' ')
@@ -111,17 +113,16 @@ class Field:
             neighbours_coords = self.get_neighbours(ant.y, ant.x)
             random.shuffle(neighbours_coords)
 
-            """
-            print(f'У муравья {ant.y} {ant.x} соседи:')
-            print(*neighbours_coords)
-            """
+            if IS_DEBUG:
+                print(f'У муравья {ant.y} {ant.x} соседи:')
+                print(*neighbours_coords)
             if not neighbours_coords:
                 continue
             for y, x in neighbours_coords:
                 if not self.is_on_field(y, x):
                     self.ants.remove(ant)
                     self.cells[ant.y][ant.x].content = None
-                    
+                    self.ants_escaped += 1
                     break
 
                 new_cell = self.cells[y][x]
@@ -204,7 +205,7 @@ class Game:
                     if isinstance(self.field.cells[self.field.player.y][self.field.player.x + 1].content, Anthill):
                         continue
                     if isinstance(self.field.cells[self.field.player.y][self.field.player.x + 1].content, Ant):
-                        self.field.ants.remove(self.field.cells[self.field.player.y][self.field.player.x + 1].content) 
+                        self.field.ants.remove(self.field.cells[self.field.player.y][self.field.player.x + 1].content)
                         self.field.cells[self.field.player.y][self.field.player.x + 1].content = None
                         self.ants_ate += 1
                     self.field.player.x += 1
@@ -212,13 +213,13 @@ class Game:
                     if isinstance(self.field.cells[self.field.player.y][self.field.player.x - 1].content, Anthill):
                         continue
                     if isinstance(self.field.cells[self.field.player.y][self.field.player.x - 1].content, Ant):
-                        self.field.ants.remove(self.field.cells[self.field.player.y][self.field.player.x - 1].content) 
+                        self.field.ants.remove(self.field.cells[self.field.player.y][self.field.player.x - 1].content)
                         self.field.cells[self.field.player.y][self.field.player.x - 1].content = None
                         self.ants_ate += 1
                     self.field.player.x -= 1
                 if key.name == 'up' and self.field.player.y:
                     if isinstance(self.field.cells[self.field.player.y - 1][self.field.player.x].content, Ant):
-                        self.field.ants.remove(self.field.cells[self.field.player.y - 1][self.field.player.x].content) 
+                        self.field.ants.remove(self.field.cells[self.field.player.y - 1][self.field.player.x].content)
                         self.field.cells[self.field.player.y - 1][self.field.player.x].content = None
                         self.ants_ate += 1
                     if isinstance(self.field.cells[self.field.player.y - 1][self.field.player.x].content, Anthill):
@@ -226,7 +227,7 @@ class Game:
                     self.field.player.y -= 1
                 if key.name == 'down' and self.field.player.y < ROWS - 1:
                     if isinstance(self.field.cells[self.field.player.y + 1][self.field.player.x].content, Ant):
-                        self.field.ants.remove(self.field.cells[self.field.player.y + 1][self.field.player.x].content) 
+                        self.field.ants.remove(self.field.cells[self.field.player.y + 1][self.field.player.x].content)
                         self.field.cells[self.field.player.y + 1][self.field.player.x].content = None
                         self.ants_ate += 1
                     if isinstance(self.field.cells[self.field.player.y + 1][self.field.player.x].content, Anthill):
@@ -240,6 +241,7 @@ class Game:
             self.field.spawn_ants()
             os.system('cls')  # Draw and clear
             self.field.draw()
+
             if not self.field.get_total_ants():
                 print('игра окончена!')
                 print(f'муравьев всего: {self.total_ants}')
@@ -247,6 +249,11 @@ class Game:
                 print(f'муравьев сбежало: {self.total_ants - self.ants_ate}')
                 input('_enter_')
                 break
+
+            if IS_DEBUG:
+                print(f'муравьев всего: {self.total_ants}')
+                print(f'муравьев съедено: {self.ants_ate}')
+                print(f'муравьев сбежало: {self.field.ants_escaped}')
 
 
 field = Field()
